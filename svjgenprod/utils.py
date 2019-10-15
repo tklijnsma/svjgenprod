@@ -7,6 +7,7 @@ import logging, subprocess, os, shutil, yaml, re
 from termcolor import colored
 
 logger = logging.getLogger('root')
+subprocess_logger = logging.getLogger('subprocess')
 
 def run_command(cmd, env=None):
     logger.warning('Issuing command: {0}'.format(' '.join(cmd)))
@@ -20,7 +21,8 @@ def run_command(cmd, env=None):
         )
 
     for stdout_line in iter(process.stdout.readline, ""):
-        print(colored('[subprocess] ', 'red') + stdout_line, end='')
+        subprocess_logger.info(stdout_line.rstrip('\n'))
+        # print(colored('[subprocess] ', 'red') + stdout_line, end='')
     process.stdout.close()
     process.wait()
     returncode = process.returncode
@@ -61,7 +63,8 @@ def run_multiple_commands(cmds, env=None):
     process.stdout.flush()
     for line in iter(process.stdout.readline, ""):
         if len(line) == 0: break
-        print(colored('[subprocess] ', 'red') + line, end='')
+        # print(colored('[subprocess] ', 'red') + line, end='')
+        subprocess_logger.info(line.rstrip('\n'))
 
     process.stdout.close()
     process.wait()
@@ -194,5 +197,26 @@ def compile_cmssw(workdir, version, arch):
     """
     compile_cmssw_src(osp.join(workdir, version))
 
+
+def remove_file(file):
+    """
+    Removes a file only if it exists, and logs
+    """
+    if osp.isfile(file):
+        logger.warning('Removing {0}'.format(file))
+        os.remove(file)
+    else:
+        logger.info('No file {0} to remove'.format(file))
+
+
+def remove_dir(directory):
+    """
+    Removes a dir only if it exists, and logs
+    """
+    if osp.isdir(directory):
+        logger.warning('Removing dir {0}'.format(directory))
+        shutil.rmtree(directory)
+    else:
+        logger.info('No directory {0} to remove'.format(directory))
 
 

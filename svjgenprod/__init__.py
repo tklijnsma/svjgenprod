@@ -3,23 +3,26 @@
 
 import os.path as osp
 import os, logging
-from termcolor import colored
-def setup_custom_logger(name):
-    formatter = logging.Formatter(
-        fmt = colored('[svj|%(levelname)s|%(asctime)s|%(module)s]:', 'yellow') + ' %(message)s'
-        )
-    handler = logging.StreamHandler()
-    handler.setFormatter(formatter)
 
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
-    logger.addHandler(handler)
-    return logger
-
-logger = setup_custom_logger('root')
+from .logger import setup_logger, setup_subprocess_logger, formatter, subprocess_formatter
+logger = setup_logger('root')
+subprocess_logger = setup_subprocess_logger('subprocess')
 
 #____________________________________________________________________
-# Global variables
+# Global scope
+
+LOG_FILE = None
+def set_log_file(log_file):
+    log_file = osp.abspath(log_file)
+    global LOG_FILE
+    LOG_FILE = log_file
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    # Little bit dangerous; not sure whether logging will open the same file twice
+    subprocess_file_handler = logging.FileHandler(log_file)
+    subprocess_file_handler.setFormatter(subprocess_formatter)
+    subprocess_logger.addHandler(subprocess_file_handler)
 
 # Input files for this package
 SVJ_INPUT_DIR = osp.join(osp.dirname(__file__), 'input')
@@ -49,13 +52,7 @@ from .config import Config
 from .gridpackgenerator import GridpackGenerator
 from .lhemaker import LHEMaker
 import calc_dark_params as cdp
-from .fullsim import (
-    FullSimBase,
-    FullSimCMSSWSetup,
-    FullSimRunnerGenSim,
-    FullSimRunnerAOD,
-    FullSimRunnerAODstep2,
-    FullSimRunnerMiniAOD,
-    FullSimRunnerNanoAOD,
-    )
+
 from .gensimfragment import GenSimFragment
+from .fullsimbase import FullSimRunnerBase
+import fullsimrunners
