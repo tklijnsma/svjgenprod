@@ -14,5 +14,6 @@ setup(
     tests_require = ['nose'],
     test_suite    = 'nose.collector',
     scripts       = [
+        'bin/svjgenprod-batch'
         ],
     )

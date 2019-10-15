@@ -3,21 +3,26 @@
 from __future__ import print_function
 
 import os.path as osp
-import logging, subprocess, os, shutil, yaml, re
+import logging, subprocess, os, shutil, yaml, re, pprint
 from termcolor import colored
 
 logger = logging.getLogger('root')
 subprocess_logger = logging.getLogger('subprocess')
 
-def run_command(cmd, env=None):
+def run_command(cmd, env=None, dry=False, shell=False):
     logger.warning('Issuing command: {0}'.format(' '.join(cmd)))
+    if dry: return
+
+    if shell:
+        cmd = ' '.join(cmd)
 
     process = subprocess.Popen(
         cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         env=env,
-        universal_newlines=True
+        universal_newlines=True,
+        shell=shell
         )
 
     for stdout_line in iter(process.stdout.readline, ""):
@@ -34,6 +39,9 @@ def run_command(cmd, env=None):
 
 
 def run_multiple_commands(cmds, env=None):
+    if dry:
+        logger.info('Sending:\n{0}'.format(pprint.pformat(cmds)))
+        return
 
     process = subprocess.Popen(
         'bash',

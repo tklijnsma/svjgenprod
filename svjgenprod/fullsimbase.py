@@ -119,3 +119,11 @@ class FullSimRunnerBase(object):
         self.setup_cmssw()
         self.cmsdriver()
         self.cmsrun()
+
+    def copy_to_output(self, output_dir=None, dry=False):
+        if output_dir is None: output_dir = svjgenprod.SVJ_OUTPUT_DIR
+        dst = osp.join(output_dir, osp.basename(self.out_root_file))
+        logger.info('Copying {0} ==> {1}'.format(self.out_root_file, dst))
+        if not dry:
+            shutil.copyfile(self.out_root_file, dst)
+

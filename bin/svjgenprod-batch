@@ -1,0 +1,95 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import os.path as osp
+import argparse, logging, shutil, os
+import svjgenprod
+from time import strftime
+logger = logging.getLogger('root')
+
+#____________________________________________________________________
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        'pythonfile', type=str,
+        help='Path to the python executable containing the job instructions'
+        )
+    parser.add_argument(
+        'njobs', type=int,
+        help='Number of jobs to submit'
+        )
+    parser.add_argument(
+        'nevents', type=int,
+        help='Number of required events *per job*'
+        )
+    parser.add_argument(
+        '-i', '--infiles', metavar='file', type=str, nargs='+',
+        default = None,
+        help = 'List of filenames to be used in the job'
+        )
+    parser.add_argument(
+        '-r', '--rundir', type=str,
+        help=(
+            'Directory where logs of the job will be stored. '
+            'Default is basename of the python file with some unique suffix.'
+            )
+        )
+    parser.add_argument(
+        '-d', '--dry', action='store_true',
+        help='Only print the .sh and .jdl contents, but do not create files or submit.'
+        )
+    args = parser.parse_args()
+
+    # Make sure there is an active grid proxy
+    svjgenprod.utils.check_proxy()
+
+    # Create a run directory in which logs etc. will be put
+    python_basename = osp.basename(args.pythonfile).replace('.py', '')
+    if args.rundir:
+        rundir = args.rundir
+    else:
+        rundir = python_basename + strftime('_%Y%m%d_%H%M%S')
+    svjgenprod.utils.create_directory(rundir, must_not_exist=True, dry=args.dry)
+
+    # Copy python file to rundir so that it is preserved
+    python_file = osp.join(rundir, osp.basename(args.pythonfile))
+    logger.info('Copying {0} to {1}'.format(args.pythonfile, python_file))
+    if not args.dry:
+        shutil.copyfile(args.pythonfile, python_file)
+
+    # Generate .sh file
+    sh_file = osp.join(rundir, python_basename + '.sh')
+    sh = svjgenprod.condor.shfile.SHStandard(python_file=python_file)
+    sh.to_file(sh_file, args.dry)
+
+    # Generate .jdl file
+    jdl_file = osp.join(rundir, python_basename + '.jdl')
+    jdl = svjgenprod.condor.jdlfile.JDLStandard(
+        sh_file = sh_file,
+        python_file = python_file,
+        n_jobs = args.njobs,
+        n_events_per_job = args.nevents,
+        infiles = args.infiles,
+        )
+    jdl.to_file(jdl_file, args.dry)
+
+    # Create also a small script to delete the output and logs
+    clean_sh_file = osp.join(rundir, 'clean.sh')
+    svjgenprod.condor.shfile.SHClean().to_file(clean_sh_file, dry=args.dry)
+
+    # Execute the submit command
+    cmd = ['condor_submit', osp.basename(jdl_file)]
+    _backdir = os.getcwd()
+    try:
+        logger.info('Entering {0}'.format(rundir))
+        if not args.dry: os.chdir(rundir)
+        svjgenprod.utils.run_command(cmd, dry=args.dry, shell=True)
+    finally:
+        logger.info('Changing back to {0}'.format(_backdir))
+        os.chdir(_backdir)
+
+
+
+#____________________________________________________________________
+if __name__ == "__main__":
+    main()

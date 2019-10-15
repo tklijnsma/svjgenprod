@@ -11,6 +11,7 @@ subprocess_logger = setup_subprocess_logger('subprocess')
 #____________________________________________________________________
 # Global scope
 
+# Possibility of saving all logging in a file
 LOG_FILE = None
 def set_log_file(log_file):
     log_file = osp.abspath(log_file)
@@ -24,29 +25,54 @@ def set_log_file(log_file):
     subprocess_file_handler.setFormatter(subprocess_formatter)
     subprocess_logger.addHandler(subprocess_file_handler)
 
-# Input files for this package
+
+# Input files directory for this package
 SVJ_INPUT_DIR = osp.join(osp.dirname(__file__), 'input')
 
+
 # Path to the genproductions repo installation
-MG_GENPROD_DIR = '/uscms/home/klijnsma/nobackup/semivis/genprod/genproductions/bin/MadGraph5_aMCatNLO'
+try:
+    MG_GENPROD_DIR = os.environ['MG_GENPROD_DIR']
+except KeyError:
+    logger.warning(
+        '$MG_GENPROD_DIR not set. Tarball generation will not work. '
+        'Install the CMSSW genproductions package if want to generate tarballs.'
+        )
 
-# Output paths
-TARBALL_OUT = '/uscms/home/klijnsma/nobackup/semivis/tarballs'
-LHE_OUT = '/uscms/home/klijnsma/nobackup/semivis/lheoutput'
 
-# Temporary paths
+# Paths to store temporary files
 MG_MODEL_DIR = '/tmp/svj/models'
 MG_INPUT_DIR = '/tmp/svj/inputs'
 RUN_GRIDPACK_DIR = '/tmp/svj/rungridpack'
-# RUN_FULLSIM_DIR = '/uscms/home/klijnsma/nobackup/semivis/fullsim'
 RUN_FULLSIM_DIR = '/tmp/svj/runfullsim'
+SVJ_OUTPUT_DIR = '/tmp/svj/output'
 
-# MG_MODEL_DIR = os.environ['SVJ_MODELS_DIR']
-# MG_INPUT_DIR = os.environ['SVJ_MG_INPUT_DIR']
-# MG_GENPROD_DIR = os.environ['MG_GENPROD_DIR']
+# Set different paths for batch mode
+def batch_mode_lpc():
+    global MG_MODEL_DIR
+    global MG_INPUT_DIR
+    global RUN_GRIDPACK_DIR
+    global RUN_FULLSIM_DIR
+    try:
+        scratch_dir = os.environ['_CONDOR_SCRATCH_DIR']
+        MG_MODEL_DIR     = osp.join(scratch_dir, 'svj/models')
+        MG_INPUT_DIR     = osp.join(scratch_dir, 'svj/inputs')
+        RUN_GRIDPACK_DIR = osp.join(scratch_dir, 'svj/rungridpack')
+        RUN_FULLSIM_DIR  = osp.join(scratch_dir, 'svj/runfullsim')
+        SVJ_OUTPUT_DIR   = osp.join(scratch_dir, 'output')
+    except KeyError:
+        logger.error(
+            'Attempted to setup for batch mode (lpc), but ${_CONDOR_SCRATCH_DIR} is not set.'
+            )
+        raise
+
+if 'SVJ_BATCH_MODE' in os.environ and os.environ['SVJ_BATCH_MODE'].rstrip().lower() == 'lpc':
+    batch_mode_lpc()
 
 
 #____________________________________________________________________
+# Package imports
+
 import utils
 from .config import Config
 from .gridpackgenerator import GridpackGenerator
@@ -56,3 +82,7 @@ import calc_dark_params as cdp
 from .gensimfragment import GenSimFragment
 from .fullsimbase import FullSimRunnerBase
 import fullsimrunners
+
+import condor.jdlfile
+import condor.shfile
+
