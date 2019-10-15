@@ -4,10 +4,31 @@ from __future__ import print_function
 
 import os.path as osp
 import logging, subprocess, os, shutil, yaml, re, pprint
-from termcolor import colored
+from .termcolor import colored
+import svjgenprod
 
 logger = logging.getLogger('root')
 subprocess_logger = logging.getLogger('subprocess')
+
+
+class switchdir(object):
+    """
+    Temporarily changes the working directory
+    """
+    def __init__(self, newdir, dry=False):
+        super(switchdir, self).__init__()
+        self.newdir = newdir
+        self._backdir = os.getcwd()
+        self.dry = dry
+        
+    def __enter__(self):
+        logger.info('chdir to {0}'.format(self.newdir))
+        if not self.dry: os.chdir(self.newdir)
+
+    def __exit__(self, type, value, traceback):
+        logger.info('chdir back to {0}'.format(self._backdir))
+        if not self.dry: os.chdir(self._backdir)
+
 
 def run_command(cmd, env=None, dry=False, shell=False):
     logger.warning('Issuing command: {0}'.format(' '.join(cmd)))
@@ -227,4 +248,16 @@ def remove_dir(directory):
     else:
         logger.info('No directory {0} to remove'.format(directory))
 
+
+def tarball_head(outfile=None):
+    """
+    Creates a tarball of the latest commit
+    """
+
+    if outfile is None:
+        outfile = osp.join(os.getcwd(), 'svjgenprod.tar')
+    outfile = osp.abspath(outfile)
+
+    with switchdir(osp.join(svjgenprod.SVJ_TOP_DIR, '..')):
+        run_command(['git', 'archive', '-o', outfile, 'HEAD'])
 

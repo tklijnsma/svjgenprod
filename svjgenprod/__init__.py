@@ -11,6 +11,9 @@ subprocess_logger = setup_subprocess_logger('subprocess')
 #____________________________________________________________________
 # Global scope
 
+SVJ_TOP_DIR = osp.abspath(osp.dirname(__file__))
+
+
 # Possibility of saving all logging in a file
 LOG_FILE = None
 def set_log_file(log_file):
@@ -27,7 +30,7 @@ def set_log_file(log_file):
 
 
 # Input files directory for this package
-SVJ_INPUT_DIR = osp.join(osp.dirname(__file__), 'input')
+SVJ_INPUT_DIR = osp.join(SVJ_TOP_DIR, 'input')
 
 
 # Path to the genproductions repo installation

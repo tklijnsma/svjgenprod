@@ -7,6 +7,8 @@ import svjgenprod
 from time import strftime
 logger = logging.getLogger('root')
 
+USE_LOCAL_REPO = True
+
 #____________________________________________________________________
 def main():
     parser = argparse.ArgumentParser()
@@ -57,9 +59,18 @@ def main():
     if not args.dry:
         shutil.copyfile(args.pythonfile, python_file)
 
+
+    infiles = [] if args.infiles is None else args.infiles
+    if USE_LOCAL_REPO:
+        # Create a tarball of the local git repo and pass it as in input file
+        svjgenprod_tarball = osp.join(rundir, 'svjgenprod.tar')
+        logger.info('Creating tarball {0} and passing as input file'.format(svjgenprod_tarball))
+        if not args.dry: svjgenprod.utils.tarball_head(svjgenprod_tarball)
+        infiles.append(svjgenprod_tarball)
+
     # Generate .sh file
     sh_file = osp.join(rundir, python_basename + '.sh')
-    sh = svjgenprod.condor.shfile.SHStandard(python_file=python_file)
+    sh = svjgenprod.condor.shfile.SHStandard(python_file=python_file, svjgenprod_tarball=svjgenprod_tarball)
     sh.to_file(sh_file, args.dry)
 
     # Generate .jdl file
@@ -69,7 +80,7 @@ def main():
         python_file = python_file,
         n_jobs = args.njobs,
         n_events_per_job = args.nevents,
-        infiles = args.infiles,
+        infiles = infiles,
         )
     jdl.to_file(jdl_file, args.dry)
 
@@ -79,14 +90,9 @@ def main():
 
     # Execute the submit command
     cmd = ['condor_submit', osp.basename(jdl_file)]
-    _backdir = os.getcwd()
-    try:
-        logger.info('Entering {0}'.format(rundir))
-        if not args.dry: os.chdir(rundir)
+
+    with svjgenprod.utils.switchdir(rundir, dry=args.dry):
         svjgenprod.utils.run_command(cmd, dry=args.dry, shell=True)
-    finally:
-        logger.info('Changing back to {0}'.format(_backdir))
-        os.chdir(_backdir)
 
 
 

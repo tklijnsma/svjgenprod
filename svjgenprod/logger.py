@@ -1,5 +1,5 @@
 import logging
-from termcolor import colored
+from .termcolor import colored
 
 formatter = logging.Formatter(
     fmt = colored('[svj|%(levelname)s|%(asctime)s|%(module)s]:', 'yellow') + ' %(message)s'

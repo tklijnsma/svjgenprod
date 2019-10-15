@@ -10,9 +10,12 @@ logger = logging.getLogger('root')
 
 class JDLBase(object):
     """docstring for JDLBase"""
+
+    default_scram_arch = 'slc7_amd64_gcc493'
+
     def __init__(self):
         super(JDLBase, self).__init__()
-        self.environment = {}
+        self.environment = { 'SCRAM_ARCH': self.default_scram_arch }
         self.options = collections.OrderedDict()
         self.options['universe'] = 'vanilla'
         self.options['environment'] = self.environment

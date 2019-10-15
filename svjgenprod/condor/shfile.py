@@ -37,10 +37,15 @@ class SHClean(SHBase):
 
 class SHStandard(SHBase):
     """docstring for SHStandard"""
-    def __init__(self, python_file):
+    def __init__(self, python_file, svjgenprod_tarball=None):
         super(SHStandard, self).__init__()
         self.python_file = python_file
-        
+
+        self.repo_from_tarball = False
+        if not(svjgenprod_tarball is None):
+            self.repo_from_tarball = True
+            self.svjgenprod_tarball = svjgenprod_tarball
+
 
     def parse(self):
         sh = []
@@ -55,11 +60,25 @@ class SHStandard(SHBase):
         sh.append('date')
         echo('pwd:')
         sh.append('pwd')
+
+        if self.repo_from_tarball:
+            sh.append('mkdir svjgenprod')
+            sh.append('tar xf svjgenprod.tar -C svjgenprod/')
+        else:
+            sh.append('git clone https://github.com/tklijnsma/svjgenprod.git')
+
+        sh.append('mkdir output')
         echo('ls:')
         sh.append('ls')
 
-        sh.append('git clone https://github.com/tklijnsma/svjgenprod.git')
+        echo('ls svjgenprod:')
+        sh.append('ls svjgenprod')
+
         sh.append('source svjgenprod/env.sh')
+
+        echo('Installing setuptools')
+        sh.append('wget https://bootstrap.pypa.io/ez_setup.py -O - | python - --user')
+
         sh.append('pip install --user svjgenprod')
         sh.append('python {0}'.format(osp.basename(self.python_file)))
 
