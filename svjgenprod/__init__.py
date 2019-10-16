@@ -29,6 +29,13 @@ def set_log_file(log_file):
     subprocess_logger.addHandler(subprocess_file_handler)
 
 
+# Seed
+SVJ_SEED = 1001
+if 'SVJ_SEED' in os.environ:
+    SVJ_SEED = int(os.environ['SVJ_SEED'])
+    logger.info('Taking seed from SVJ_SEED environment variable: {0}'.format(SVJ_SEED))
+
+
 # Input files directory for this package
 SVJ_INPUT_DIR = osp.join(SVJ_TOP_DIR, 'input')
 

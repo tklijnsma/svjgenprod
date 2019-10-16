@@ -64,9 +64,9 @@ class FullSimRunnerBase(object):
 
         self.in_file = osp.abspath(in_file)
         self.n_events = n_events
-        self.cfg_file_basename = '{0}_{1}_{2}.py'.format(self.model_name, self.substage, self.seed)
+        self.cfg_file_basename = '{0}_{1}_seed{2}.py'.format(self.model_name, self.substage, self.seed)
         self.cfg_file = osp.join(self.get_cmssw_src(), self.cfg_file_basename)
-        self.out_root_file_basename = '{0}_{1}_{2}.root'.format(self.model_name, self.substage, self.seed)
+        self.out_root_file_basename = '{0}_{1}_seed{2}.root'.format(self.model_name, self.substage, self.seed)
         self.out_root_file = osp.join(self.get_cmssw_src(), self.out_root_file_basename)
 
     def create_workdir(self, dry=False):

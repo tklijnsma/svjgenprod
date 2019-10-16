@@ -90,27 +90,23 @@ class SHStandard(SHBase):
         sh.append('#!/bin/bash')
         sh.append('set -e')
         echo('##### HOST DETAILS #####')
-        echo('hostname:')
-        sh.append('hostname')
-        echo('date:')
-        sh.append('date')
-        echo('pwd:')
-        sh.append('pwd')
+        echo('hostname: $(hostname)')
+        echo('date:     $(date)')
+        echo('pwd:      $(pwd)')
+        sh.append('export SVJ_SEED=$1')
+        echo('seed:     ${SVJ_SEED}')
 
         sh.extend(self.clone())
 
         sh.append('mkdir output')
-        echo('ls:')
-        sh.append('ls')
-
-        echo('ls svjgenprod:')
-        sh.append('ls svjgenprod')
+        echo('ls -al:')
+        sh.append('ls -al')
 
         sh.append('source svjgenprod/env.sh')
-        # sh.append('source /cvmfs/sft.cern.ch/lcg/views/LCG_95/x86_64-centos7-gcc7-opt/setup.sh')
 
         sh.extend(self.install())
 
+        echo('Starting python {0}'.format(osp.basename(self.python_file)))
         sh.append('python {0}'.format(osp.basename(self.python_file)))
 
         sh = '\n'.join(sh)
