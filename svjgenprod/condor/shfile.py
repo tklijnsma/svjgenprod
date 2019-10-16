@@ -47,6 +47,42 @@ class SHStandard(SHBase):
             self.svjgenprod_tarball = svjgenprod_tarball
 
 
+    def clone(self):
+        if self.repo_from_tarball: return self.clone_nogit()
+        return [ 'git clone https://github.com/tklijnsma/svjgenprod.git' ]
+
+
+    def clone_nogit(self):
+        """
+        No git available on LPC worker nodes;
+        extract a provided tarball manually instead.
+        Effectively git clone https://github.com/tklijnsma/svjgenprod.git
+        """
+        sh = [
+            'mkdir svjgenprod',
+            'tar xf svjgenprod.tar -C svjgenprod/',
+            ]
+        return sh
+
+
+    def install(self):
+        if self.repo_from_tarball: return self.install_nopip()
+        return [ 'pip install --user -e svjgenprod' ]
+
+
+    def install_nopip(self):
+        """
+        No pip available on LPC worker nodes;
+        install package manually instead.
+        Effectively pip install --user -e svjgenprod
+        """        
+        sh = [
+            'export PATH="${PWD}/svjgenprod/bin:${PATH}"',
+            'export PYTHONPATH="${PWD}/svjgenprod:${PYTHONPATH}"',
+            ]
+        return sh
+
+
     def parse(self):
         sh = []
         echo = lambda text: sh.append('echo "{0}"'.format(text))
@@ -61,11 +97,7 @@ class SHStandard(SHBase):
         echo('pwd:')
         sh.append('pwd')
 
-        if self.repo_from_tarball:
-            sh.append('mkdir svjgenprod')
-            sh.append('tar xf svjgenprod.tar -C svjgenprod/')
-        else:
-            sh.append('git clone https://github.com/tklijnsma/svjgenprod.git')
+        sh.extend(self.clone())
 
         sh.append('mkdir output')
         echo('ls:')
@@ -75,11 +107,8 @@ class SHStandard(SHBase):
         sh.append('ls svjgenprod')
 
         sh.append('source svjgenprod/env.sh')
+        sh.extend(self.install())
 
-        echo('Installing setuptools')
-        sh.append('wget https://bootstrap.pypa.io/ez_setup.py -O - | python - --user')
-
-        sh.append('pip install --user svjgenprod')
         sh.append('python {0}'.format(osp.basename(self.python_file)))
 
         sh = '\n'.join(sh)
