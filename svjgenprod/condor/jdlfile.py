@@ -3,7 +3,7 @@
 from __future__ import print_function
 
 import os.path as osp
-import logging, subprocess, os, shutil, yaml, re, collections, copy
+import logging, os, collections
 import svjgenprod
 logger = logging.getLogger('root')
 
