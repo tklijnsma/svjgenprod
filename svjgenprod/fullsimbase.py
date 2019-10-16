@@ -13,14 +13,20 @@ logger = logging.getLogger('root')
 #____________________________________________________________________
 def get_config(config):
     """
-    Guaranteed to return a svjgenprod.Config instancse or throws an exception
+    Guaranteed to return a svjgenprod.Config instance or throws an exception
     """
     if isinstance(config, svjgenprod.Config):
         return config
     elif osp.isfile(config):
-        return svjgenprod.Config.from_yaml(config)
+        if config.endswith('.yaml'):
+            return svjgenprod.Config.from_yaml(config)
+        else:
+            return svjgenprod.Config.from_file(config)
     else:
-        raise TypeError('config parameter should be either a Config instance or a path to a .yaml file.')
+        raise TypeError(
+            'config parameter should be either a Config instance, '
+            'a path to a .yaml file, or a path to a config file.'
+            )
 
 
 #____________________________________________________________________

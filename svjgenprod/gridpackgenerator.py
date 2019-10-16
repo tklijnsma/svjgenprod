@@ -30,6 +30,10 @@ class GridpackGenerator(object):
         config = svjgenprod.Config.from_yaml(yaml_file)
         return cls(config)
 
+    @classmethod
+    def from_file(cls, file):
+        config = svjgenprod.Config.from_file(file)
+        return cls(config)
 
     def __init__(self, config):
         super(GridpackGenerator, self).__init__()

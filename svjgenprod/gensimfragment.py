@@ -3,7 +3,7 @@
 from __future__ import print_function
 
 import os.path as osp
-import yaml, logging
+import logging
 
 import svjgenprod
 from .mass_runner import MassRunner
@@ -18,6 +18,11 @@ class GenSimFragment(object):
     @classmethod
     def from_yaml(cls, yaml_file):
         config = svjgenprod.Config.from_yaml(yaml_file)
+        return cls(config)
+
+    @classmethod
+    def from_file(cls, file):
+        config = svjgenprod.Config.from_file(file)
         return cls(config)
 
     def __init__(self, config):
@@ -70,7 +75,7 @@ class GenSimFragment(object):
     def get_xsec(self):
         if self.process_type.startswith('s'):
             self.x_sec = svjgenprod.utils.crosssection_from_file(
-                osp.join(svjgenprod.SVJ_INPUT_DIR, 'xsecs_s-channel.yaml'),
+                osp.join(svjgenprod.SVJ_INPUT_DIR, 'xsecs_s-channel.txt'),
                 self.m_med
                 )
         else:

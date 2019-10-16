@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
-import yaml, logging, pprint
+import logging, pprint
+from ConfigParser import ConfigParser
 logger = logging.getLogger('root')
 
 
@@ -12,10 +13,38 @@ class Config(dict):
     def __init__(self, *args, **kwargs):
         super(Config, self).__init__(*args, **kwargs)
         logger.debug('Initialized config with parameters:\n{0}'.format(pprint.pformat(kwargs)))
-        
+        self.tags = []
+
+    @classmethod
+    def from_file(cls, config_file, section='default'):
+        logger.info(
+            'Initializing from config file {0}, section {1}'
+            .format(config_file, section)
+            )
+        configp = ConfigParser()
+        configp.read(config_file)
+        config = dict(configp.items(section))
+        # Unfortunately ConfigParser does not do typing
+        config['year']         = configp[section].getint('year')
+        config['alpha_d']      = configp[section].getfloat('alpha_d')
+        config['m_med']        = configp[section].getint('m_med')
+        config['m_d']          = configp[section].getint('m_d')
+        config['n_f']          = configp[section].getint('n_f')
+        config['r_inv']        = configp[section].getfloat('r_inv')
+        return cls(**config)
+
     @classmethod
     def from_yaml(cls, yaml_file):
         logger.info('Initializing from .yaml file {0}'.format(yaml_file))
+        try:
+            import yaml
+        except ImportError:
+            logger.error(
+                'PyYAML is not installed; install it with '
+                '\'pip install PyYAML\', or use another initialization '
+                'method.'
+                )
+            raise
         confdict = yaml.full_load(open(yaml_file, 'r'))
         inst = cls(**confdict)
         inst.yaml_file = yaml_file

@@ -3,7 +3,8 @@
 from __future__ import print_function
 
 import os.path as osp
-import logging, subprocess, os, shutil, yaml, re, pprint
+import logging, subprocess, os, shutil, re, pprint
+import numpy as np
 from .termcolor import colored
 import svjgenprod
 
@@ -156,13 +157,18 @@ def check_proxy():
         raise
 
 
-def crosssection_from_file(yaml_file, m_med):
-    logger.debug('Initializing xsec list from .yaml file {0}'.format(yaml_file))
-    xs = yaml.full_load(open(yaml_file, 'r'))
-    key = int(m_med)
-    r = xs[key]
-    logger.debug('Found xs(m_med = {0}) = {1}'.format(m_med, r))
-    return r
+def crosssection_from_file(file, m_med):
+    logger.debug('Loading xsec list from file {0}'.format(file))
+    m_meds, crosssections = np.loadtxt(file).T
+    index, = np.where(m_meds == m_med)
+    if index == []:
+        raise ValueError(
+            'Could not find cross section for m_med = {0} in {1}'
+            .format(m_med, file)
+            )
+    xs = crosssections[index[0]]
+    logger.debug('Found xs = {0}'.format(xs))
+    return xs
 
 
 def get_model_name_from_tarball(tarball):
