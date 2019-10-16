@@ -3,8 +3,7 @@
 from __future__ import print_function
 
 import os.path as osp
-import logging, subprocess, os, shutil, re, pprint
-import numpy as np
+import logging, subprocess, os, shutil, re, pprint, csv
 from .termcolor import colored
 import svjgenprod
 
@@ -157,18 +156,30 @@ def check_proxy():
         raise
 
 
-def crosssection_from_file(file, m_med):
+def decomment(open_file):
+    for line in open_file:
+        line = line.split('#')[0].strip()
+        if line: yield line
+
+
+def crosssection_from_file(file, m_med_target):
+    """
+    Assumes a two column file with first column m_med, second column xs.
+    Does not require any dependencies like this.
+    """
     logger.debug('Loading xsec list from file {0}'.format(file))
-    m_meds, crosssections = np.loadtxt(file).T
-    index, = np.where(m_meds == m_med)
-    if index == []:
-        raise ValueError(
-            'Could not find cross section for m_med = {0} in {1}'
-            .format(m_med, file)
-            )
-    xs = crosssections[index[0]]
-    logger.debug('Found xs = {0}'.format(xs))
-    return xs
+    with open(file ,'r') as f:
+        for line in decomment(f):
+            m_med, xs = line.split()
+            m_med = float(m_med)
+            if m_med == m_med_target:
+                xs = float(xs)
+                logger.debug('Found xs = {0} for m_med = {1}'.format(xs, m_med_target))
+                return xs
+    raise ValueError(
+        'Could not find cross section for m_med = {0} in {1}'
+        .format(m_med_target, file)
+        )
 
 
 def get_model_name_from_tarball(tarball):
