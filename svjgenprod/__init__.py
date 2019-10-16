@@ -57,6 +57,7 @@ def batch_mode_lpc():
     global MG_INPUT_DIR
     global RUN_GRIDPACK_DIR
     global RUN_FULLSIM_DIR
+    global SVJ_OUTPUT_DIR
     global BATCH_MODE
     BATCH_MODE = True
     try:
