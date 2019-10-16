@@ -26,14 +26,13 @@ class LHEMaker(object):
         self.model_name = svjgenprod.utils.get_model_name_from_tarball(tarball)
         self.process_type = self.get_process_type() if process_type is None else process_type
 
-        self.mg_genprod_dir = svjgenprod.MG_GENPROD_DIR
         self.run_gridpack_dir = svjgenprod.RUN_GRIDPACK_DIR
         self.lhe_outdir = svjgenprod.LHE_OUT
 
         self.log_file = osp.join(osp.dirname(self.tarball), self.model_name + '.log')
         self.xs = self.get_mg_cross_section()
 
-        self.seed = 1001
+        self.seed = svjgenprod.SVJ_SEED
         self.force_renew_tarball = True
 
 

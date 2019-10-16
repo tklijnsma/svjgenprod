@@ -33,7 +33,7 @@ def get_config(config):
 class FullSimRunnerBase(object):
     """Abstract class to subclass specific runners from"""
 
-    seed = 1001
+    seed = svjgenprod.SVJ_SEED
     _create_workdir_called = False
     _force_renew_workdir = False
 
