@@ -55,26 +55,19 @@ class Config(dict):
         m_d = self.get('m_d')
 
         try:
-            assert type(self.get('n_events')) is int
-            assert type(self.get('n_jobs')) is int
             assert type(m_med) is int
             assert type(m_d) is int
-
             assert m_med > 0
             assert m_d > 0
-
             assert m_med > 2*m_d, 'm_med > 2*m_d necessary for on-shell pair production of the dark quarks.'
-
             assert self.get('process_type') in ['s-channel', 't-channel']
-
             assert self.get('r_inv') > 0.
             assert self.get('r_inv') < 1.
-
             assert self.get('year') in [ 2016, 2017, 2018 ]
 
         except AssertionError:
             logger.error('Encountered problem with basic checks of the config')
-            logger.error('Contents: {0}'.format(self))
+            logger.error('Contents: {0}'.format(pprint.pformat(self)))
             raise
 
 

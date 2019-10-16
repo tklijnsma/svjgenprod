@@ -106,7 +106,9 @@ class SHStandard(SHBase):
         echo('ls svjgenprod:')
         sh.append('ls svjgenprod')
 
-        sh.append('source svjgenprod/env.sh')
+        # sh.append('source svjgenprod/env.sh')
+        sh.append('source /cvmfs/sft.cern.ch/lcg/views/LCG_95/x86_64-centos7-gcc7-opt/setup.sh')
+
         sh.extend(self.install())
 
         sh.append('python {0}'.format(osp.basename(self.python_file)))

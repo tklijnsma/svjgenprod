@@ -128,6 +128,7 @@ class FullSimRunnerBase(object):
 
     def copy_to_output(self, output_dir=None, dry=False):
         if output_dir is None: output_dir = svjgenprod.SVJ_OUTPUT_DIR
+        svjgenprod.utils.create_directory(output_dir)
         dst = osp.join(output_dir, osp.basename(self.out_root_file))
         logger.info('Copying {0} ==> {1}'.format(self.out_root_file, dst))
         if not dry:

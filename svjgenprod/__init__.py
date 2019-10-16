@@ -51,11 +51,14 @@ RUN_FULLSIM_DIR = '/tmp/svj/runfullsim'
 SVJ_OUTPUT_DIR = '/tmp/svj/output'
 
 # Set different paths for batch mode
+BATCH_MODE = False
 def batch_mode_lpc():
     global MG_MODEL_DIR
     global MG_INPUT_DIR
     global RUN_GRIDPACK_DIR
     global RUN_FULLSIM_DIR
+    global BATCH_MODE
+    BATCH_MODE = True
     try:
         scratch_dir = os.environ['_CONDOR_SCRATCH_DIR']
         MG_MODEL_DIR     = osp.join(scratch_dir, 'svj/models')

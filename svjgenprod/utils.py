@@ -60,7 +60,7 @@ def run_command(cmd, env=None, dry=False, shell=False):
         raise subprocess.CalledProcessError(cmd, returncode)
 
 
-def run_multiple_commands(cmds, env=None):
+def run_multiple_commands(cmds, env=None, dry=False):
     if dry:
         logger.info('Sending:\n{0}'.format(pprint.pformat(cmds)))
         return
