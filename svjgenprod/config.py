@@ -50,6 +50,26 @@ class Config(dict):
         inst.yaml_file = yaml_file
         return inst
 
+    @classmethod
+    def flexible_init(cls, config):
+        """
+        Guaranteed to return a Config instance or throws an exception
+        """
+        if isinstance(config, Config):
+            return config
+        elif isinstance(config, dict):
+            return cls(config)
+        elif osp.isfile(config):
+            if config.endswith('.yaml'):
+                return cls.from_yaml(config)
+            else:
+                return cls.from_file(config)
+        else:
+            raise TypeError(
+                'config parameter should be either a Config instance, '
+                'a path to a .yaml file, or a path to a config file.'
+                )
+
     def basic_checks(self):
         m_med = self.get('m_med')
         m_d = self.get('m_d')

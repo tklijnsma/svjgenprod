@@ -11,25 +11,6 @@ logger = logging.getLogger('root')
 
 
 #____________________________________________________________________
-def get_config(config):
-    """
-    Guaranteed to return a svjgenprod.Config instance or throws an exception
-    """
-    if isinstance(config, svjgenprod.Config):
-        return config
-    elif osp.isfile(config):
-        if config.endswith('.yaml'):
-            return svjgenprod.Config.from_yaml(config)
-        else:
-            return svjgenprod.Config.from_file(config)
-    else:
-        raise TypeError(
-            'config parameter should be either a Config instance, '
-            'a path to a .yaml file, or a path to a config file.'
-            )
-
-
-#____________________________________________________________________
 class FullSimRunnerBase(object):
     """Abstract class to subclass specific runners from"""
 
@@ -39,7 +20,7 @@ class FullSimRunnerBase(object):
 
     @classmethod
     def for_year(cls, config, *args, **kwargs):
-        config = get_config(config)
+        config = svjgenprod.Config.flexible_init(config)
         subclass_dict = cls.subclass_per_year()
         year = config['year']
         if not year in subclass_dict:
@@ -53,7 +34,7 @@ class FullSimRunnerBase(object):
 
     def __init__(self, config, in_file, n_events):
         super(FullSimRunnerBase, self).__init__()
-        self.config = get_config(config)
+        self.config = svjgenprod.Config.flexible_init(config)
         self.year = self.config['year']
         self.model_name = self.config.get_model_name()
 

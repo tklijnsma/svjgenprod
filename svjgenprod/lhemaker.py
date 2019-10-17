@@ -15,6 +15,7 @@ class LHEMaker(object):
     """docstring for LHEMaker"""
 
     def __init__(self,
+            config,
             tarball,
             n_events,
             seed = svjgenprod.SVJ_SEED,
@@ -22,6 +23,7 @@ class LHEMaker(object):
             ):
         super(LHEMaker, self).__init__()
 
+        self.config = svjgenprod.Config.flexible_init(config)
         self.tarball = tarball
         self.n_events = n_events
         self.seed = seed
@@ -31,10 +33,7 @@ class LHEMaker(object):
         self.run_gridpack_dir = svjgenprod.RUN_GRIDPACK_DIR
 
         self.log_file = osp.join(osp.dirname(self.tarball), self.model_name + '.log')
-        self.xs = self.get_mg_cross_section()
-
         self.force_renew_tarball = True
-
 
     def get_process_type(self):
         match = re.match(r'\w+?_(\w)', osp.basename(self.tarball))
@@ -44,15 +43,12 @@ class LHEMaker(object):
                 .format(self.tarball)
                 )
         process_type = match.group(1)
-
         if process_type == 's' or process_type == 't':
             process_type += '-channel'
         else:
             raise ValueError('Cannot make process_type based on channel \'{0}\''.format(process_type))
-
         logger.info('Retrieved process_type {0} from {1}'.format(process_type, self.tarball))
         return process_type
-
 
     def get_mg_cross_section(self):
         """Gets the madgraph cross section from the log file that was created when creating the gridpack"""
