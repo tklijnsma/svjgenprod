@@ -64,11 +64,12 @@ def local(args):
     Runs the specified python file locally.
     Only sets a few environment variables to simulate the job environment.
     """
+    logger.info('Running locally; ignoring njobs argument and doing only 1 job')
     env = os.environ.copy()
     if args.infiles:
         env['SVJ_INFILES'] = ','.join(args.infiles)
-    env['SVJ_SEED'] = args.seed
-
+    env['SVJ_NEVENTS'] = str(args.nevents)  # Must be string
+    env['SVJ_SEED'] = str(args.seed)  # Must be string
     svjgenprod.utils.run_command(
         ['python', args.pythonfile],
         env=env
@@ -76,9 +77,9 @@ def local(args):
 
 
 def batch(args):
-
     # Make sure there is an active grid proxy
     svjgenprod.utils.check_proxy()
+    svjgenprod.environment.set_seed(args.seed)
 
     # Create a run directory in which logs etc. will be put
     python_basename = osp.basename(args.pythonfile).replace('.py', '')

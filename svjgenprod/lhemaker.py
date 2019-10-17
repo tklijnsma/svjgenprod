@@ -13,26 +13,26 @@ logger = logging.getLogger('root')
 #____________________________________________________________________
 class LHEMaker(object):
     """docstring for LHEMaker"""
+
     def __init__(self,
             tarball,
+            n_events,
+            seed = svjgenprod.SVJ_SEED,
             process_type = None,
-            total_events = 20,
-            n_jobs = 2
             ):
         super(LHEMaker, self).__init__()
 
         self.tarball = tarball
-        self.total_events = total_events
+        self.n_events = n_events
+        self.seed = seed
         self.model_name = svjgenprod.utils.get_model_name_from_tarball(tarball)
         self.process_type = self.get_process_type() if process_type is None else process_type
 
         self.run_gridpack_dir = svjgenprod.RUN_GRIDPACK_DIR
-        self.lhe_outdir = svjgenprod.LHE_OUT
 
         self.log_file = osp.join(osp.dirname(self.tarball), self.model_name + '.log')
         self.xs = self.get_mg_cross_section()
 
-        self.seed = svjgenprod.SVJ_SEED
         self.force_renew_tarball = True
 
 
@@ -66,23 +66,18 @@ class LHEMaker(object):
         logger.info('Found cross section {0} from log_file'.format(xs))
         return xs
 
-
     def extract_and_run_tarball(self):
         copied_tarball = osp.join(self.run_gridpack_dir, osp.basename(self.tarball))
         extracted_tarball = copied_tarball.replace('.tar.xz', '')
         self.copy_tarball(copied_tarball)
         self.extract_tarball(copied_tarball, dst = extracted_tarball)
         self.run_lhe_generation(extracted_tarball)
-        self.move_lhe(osp.join(extracted_tarball, 'cmsgrid_final.lhe'))
-
 
     def copy_tarball(self, dst):
         def copy():
             logger.warning('Copying {0} ==> {1}'.format(self.tarball, dst))
             shutil.copyfile(self.tarball, dst)
-
         svjgenprod.utils.create_directory(osp.dirname(dst))
-
         if osp.isfile(dst):
             if self.force_renew_tarball:
                 logger.warning('Removing previously existing {0}'.format(dst))
@@ -93,7 +88,6 @@ class LHEMaker(object):
         else:
             copy()
         return dst
-
 
     def extract_tarball(self, tarball, dst=None):
         if not tarball.endswith('.tar.xz'):
@@ -109,46 +103,37 @@ class LHEMaker(object):
 
         return dst
 
-
     def run_lhe_generation(self, extracted_tarball):
         if not osp.isfile(osp.join(extracted_tarball, 'runcmsgrid.sh')):
             raise RuntimeError(
                 'File \'runcmsgrid.sh\' does not exist in {0}'
                 .format(extracted_tarball)
                 )
-
-        _return_dir = os.getcwd()
-        try:
-            logger.info('Changing dir to {0}'.format(extracted_tarball))
-            os.chdir(extracted_tarball)
-            cmd = [ 'bash', 'runcmsgrid.sh', str(self.total_events), str(self.seed) ]
+        with svjgenprod.utils.switchdir(extracted_tarball):
+            cmd = [ 'bash', 'runcmsgrid.sh', str(self.n_events), str(self.seed) ]
             svjgenprod.utils.run_command(cmd)
+        self.out_lhe_file = osp.join(extracted_tarball, 'cmsgrid_final.lhe')
 
-        except subprocess.CalledProcessError:
-            logger.error('Error running cmd {0}'.format(' '.join(cmd)))
-            raise
+    def _get_dst(self, output_dir, dry):
+        """
+        Makes an output directory if not yet existing and comes up with
+        a better file name
+        """
+        if output_dir is None: output_dir = svjgenprod.SVJ_OUTPUT_DIR
+        svjgenprod.utils.create_directory(output_dir, dry=dry)
+        dst = osp.join(
+            output_dir,
+            'lhe_{0}_N{1}_seed{2}'.format(self.model_name, self.n_events, self.seed)
+            )
+        return dst
 
-        finally:
-            os.chdir(_return_dir)
+    def copy_to_output(self, output_dir=None, dry=False):
+        dst = self._get_dst(output_dir, dry)
+        logger.info('Copying {0} ==> {1}'.format(self.out_lhe_file, dst))
+        if not dry: shutil.copyfile(self.out_lhe_file, dst)
 
+    def move_to_output(self, output_dir=None, dry=False):
+        dst = self._get_dst(output_dir, dry)
+        logger.info('Moving {0} ==> {1}'.format(self.out_lhe_file, dst))
+        if not dry: shutil.move(self.out_lhe_file, dst)
 
-    def create_new_lhe_dir(self, dry=False):
-        outdir = osp.join(self.lhe_outdir, strftime('lhe-%y%m%d-%H%M-{0}'.format(self.model_name)))
-        outdir = svjgenprod.utils.make_inode_unique(outdir)
-        svjgenprod.utils.create_directory(outdir, must_not_exist=True, dry=dry)
-        return outdir
-
-
-    def move_lhe(self, lhe_file):
-        if lhe_file is None: lhe_file = osp.join(extracted_tarball, 'cmsgrid_final.lhe')
-        if not osp.isfile(lhe_file):
-            logger.error('lhe_file does not exist: {0}'.format(lhe_file))
-            return
-
-        outdir = self.create_new_lhe_dir()
-        dst = osp.join(outdir, 'lhe-N{0}.lhe'.format(self.total_events))
-        dst = svjgenprod.utils.make_inode_unique(dst)
-
-        logger.warning('Moving {0} ==> {1}'.format(lhe_file, dst))
-        shutil.move(lhe_file, dst)
-        

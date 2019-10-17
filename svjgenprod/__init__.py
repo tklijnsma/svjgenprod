@@ -30,6 +30,9 @@ RUN_GRIDPACK_DIR = '/tmp/svj/rungridpack'
 RUN_FULLSIM_DIR = '/tmp/svj/runfullsim'
 SVJ_OUTPUT_DIR = '/tmp/svj/output'
 
+# Assume running locally by default
+BATCH_MODE = False
+
 # Overwrite global vars based on environment variables
 import environment
 environment.read_environment()

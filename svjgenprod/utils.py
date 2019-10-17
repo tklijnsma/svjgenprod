@@ -56,6 +56,7 @@ def run_command(cmd, env=None, dry=False, shell=False):
     if (returncode == 0):
         logger.info('Command exited with status 0 - all good')
     else:
+        logger.error('Exit status {0} for command: {1}'.format(returncode, cmd))
         raise subprocess.CalledProcessError(cmd, returncode)
 
 

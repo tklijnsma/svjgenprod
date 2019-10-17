@@ -64,9 +64,9 @@ class FullSimRunnerBase(object):
 
         self.in_file = osp.abspath(in_file)
         self.n_events = n_events
-        self.cfg_file_basename = '{0}_{1}_seed{2}.py'.format(self.model_name, self.substage, self.seed)
+        self.cfg_file_basename = '{0}_{1}_N{2}_seed{3}.py'.format(self.model_name, self.substage, self.n_events, self.seed)
         self.cfg_file = osp.join(self.get_cmssw_src(), self.cfg_file_basename)
-        self.out_root_file_basename = '{0}_{1}_seed{2}.root'.format(self.model_name, self.substage, self.seed)
+        self.out_root_file_basename = '{0}_{1}_N{2}_seed{3}.root'.format(self.model_name, self.substage, self.n_events, self.seed)
         self.out_root_file = osp.join(self.get_cmssw_src(), self.out_root_file_basename)
 
     def create_workdir(self, dry=False):
@@ -134,3 +134,10 @@ class FullSimRunnerBase(object):
         if not dry:
             shutil.copyfile(self.out_root_file, dst)
 
+    def move_to_output(self, output_dir=None, dry=False):
+        if output_dir is None: output_dir = svjgenprod.SVJ_OUTPUT_DIR
+        svjgenprod.utils.create_directory(output_dir)
+        dst = osp.join(output_dir, osp.basename(self.out_root_file))
+        logger.info('Moving {0} ==> {1}'.format(self.out_root_file, dst))
+        if not dry:
+            shutil.move(self.out_root_file, dst)

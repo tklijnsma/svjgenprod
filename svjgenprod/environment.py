@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
-import os, sys
+import os, logging
 import os.path as osp
 import svjgenprod
+logger = logging.getLogger('root')
 
 def read_environment():
     """
