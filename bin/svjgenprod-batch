@@ -25,6 +25,10 @@ def main():
         help='Number of required events *per job*'
         )
     parser.add_argument(
+        '-s', '--seed', type=int, default=1001,
+        help='Starting seed. Will be incremented by 1 for each job.'
+        )
+    parser.add_argument(
         '-i', '--infiles', metavar='file', type=str, nargs='+',
         default = None,
         help = 'List of filenames to be used in the job'
@@ -40,7 +44,38 @@ def main():
         '-d', '--dry', action='store_true',
         help='Only print the .sh and .jdl contents, but do not create files or submit.'
         )
+    parser.add_argument(
+        '--local', action='store_true',
+        help=(
+            'Run locally instead. Environment variables will still be set, '
+            'but the .sh file will not be ran.'
+            )
+        )
     args = parser.parse_args()
+
+    if args.local:
+        local(args)
+    else:
+        batch(args)
+
+
+def local(args):
+    """
+    Runs the specified python file locally.
+    Only sets a few environment variables to simulate the job environment.
+    """
+    env = os.environ.copy()
+    if args.infiles:
+        env['SVJ_INFILES'] = ','.join(args.infiles)
+    env['SVJ_SEED'] = args.seed
+
+    svjgenprod.utils.run_command(
+        ['python', args.pythonfile],
+        env=env
+        )
+
+
+def batch(args):
 
     # Make sure there is an active grid proxy
     svjgenprod.utils.check_proxy()
@@ -70,7 +105,10 @@ def main():
 
     # Generate .sh file
     sh_file = osp.join(rundir, python_basename + '.sh')
-    sh = svjgenprod.condor.shfile.SHStandard(python_file=python_file, svjgenprod_tarball=svjgenprod_tarball)
+    sh = svjgenprod.condor.shfile.SHStandard(
+        python_file = python_file,
+        svjgenprod_tarball = svjgenprod_tarball if USE_LOCAL_REPO else None
+        )
     sh.to_file(sh_file, args.dry)
 
     # Generate .jdl file

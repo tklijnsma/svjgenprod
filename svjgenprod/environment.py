@@ -13,11 +13,11 @@ def read_environment():
     env = os.environ
 
     if 'SVJ_SEED' in env:
-        svjgenprod.SVJ_SEED = int(env['SVJ_SEED'])
         logger.info(
             'Taking seed from SVJ_SEED environment variable: {0}'
             .format(svjgenprod.SVJ_SEED)
             )
+        set_seed(env['SVJ_SEED'])
 
     # Path to the genproductions repo installation
     try:
@@ -55,4 +55,10 @@ def batch_mode_lpc():
             'Attempted to setup for batch mode (lpc), but ${_CONDOR_SCRATCH_DIR} is not set.'
             )
         raise
+
+
+def set_seed(seed):
+    logger.info('Setting seed to {0}'.format(seed))
+    seed = int(seed)
+    svjgenprod.SVJ_SEED = seed
 

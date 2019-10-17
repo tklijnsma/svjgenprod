@@ -31,8 +31,8 @@ RUN_FULLSIM_DIR = '/tmp/svj/runfullsim'
 SVJ_OUTPUT_DIR = '/tmp/svj/output'
 
 # Overwrite global vars based on environment variables
-from .environment import read_environment
-read_environment()
+import environment
+environment.read_environment()
 
 
 #____________________________________________________________________
