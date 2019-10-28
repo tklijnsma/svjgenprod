@@ -18,7 +18,8 @@ class JDLBase(object):
         self.environment = {
             'SCRAM_ARCH': self.default_scram_arch,
             'CONDOR_CLUSTER_NUMBER' : '$(Cluster)',
-            'CONDOR_PROCESS_ID' : '$(Process)'
+            'CONDOR_PROCESS_ID' : '$(Process)',
+            'USER' : os.environ['USER'],
             }
         self.options = collections.OrderedDict()
         self.options['universe'] = 'vanilla'
