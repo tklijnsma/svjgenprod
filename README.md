@@ -16,7 +16,3 @@ git clone https://github.com/tklijnsma/svjgenprod.git
 source svjgenprod/env.sh
 pip install --user -e svjgenprod
 ```
-
-TODO: `requirements.txt`, dependencies not installed automatically at the moment.
-
-TODO: `MANIFEST.in`, input files now not bundled in PyPI package.
