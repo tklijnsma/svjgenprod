@@ -149,7 +149,7 @@ class FullSimRunnerBase(object):
         if stageout_directory is None:
             # Make something reasonable
             if svjgenprod.BATCH_MODE:
-                condor_cluster = os.environ['$CONDOR_CLUSTER']
+                condor_cluster = os.environ['$CONDOR_CLUSTER_NUMBER']
             else:
                 condor_cluster = 'local'
             stageout_directory = (
