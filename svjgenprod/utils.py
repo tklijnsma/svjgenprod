@@ -157,7 +157,24 @@ def check_proxy():
         raise
 
 
+def check_scram_arch():
+    """
+    Checks whether the scram_arch is slc6
+    """
+    scram_arch = os.environ['SCRAM_ARCH']
+    if not scram_arch.startswith('slc6'):
+        logger.warning(
+            'Detected SCRAM_ARCH = {0}; '
+            'There might be incompatibility issues later on by not '
+            'using slc6!!'
+            .format(scram_arch)
+            )
+
+
 def decomment(open_file):
+    """
+    Yields lines one by one, stripping everything after '#'
+    """
     for line in open_file:
         line = line.split('#')[0].strip()
         if line: yield line

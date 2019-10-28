@@ -37,6 +37,7 @@ class GridpackGenerator(object):
 
     def __init__(self, config):
         super(GridpackGenerator, self).__init__()
+        svjgenprod.utils.check_scram_arch()
 
         self.force_renew_model_dir = True
         self.force_renew_input_dir = True
@@ -73,7 +74,7 @@ class GridpackGenerator(object):
         Uses the variables from the config to determine paths and
         the model name.
 
-        Split function so that it's possible to tweak config parameters
+        Split function from init so that it's possible to tweak config parameters
         and simply re-call define_paths.
         """
 
@@ -81,7 +82,11 @@ class GridpackGenerator(object):
         if self.channel == 's':
             self.med_type = 'Zp'
             self.template_model_dir = osp.join(svjgenprod.SVJ_INPUT_DIR, 'mg_model_templates/DMsimp_SVJ_s_spin1_template')
-            self.template_input_dir = osp.join(svjgenprod.SVJ_INPUT_DIR, 'mg_input_templates/DMsimp_SVJ_s_spin1_input_template')
+            if self.config.get('lowmassZ', False):
+                self.template_input_dir = osp.join(svjgenprod.SVJ_INPUT_DIR, 'mg_input_templates/DMsimp_SVJ_s_spin1_lowmassZ_input_template')
+                logger.info('Detected low mass Z\' option; using {0}'.format(self.template_input_dir))
+            else:
+                self.template_input_dir = osp.join(svjgenprod.SVJ_INPUT_DIR, 'mg_input_templates/DMsimp_SVJ_s_spin1_input_template')
         elif self.channel == 't':
             self.med_type = 'Phi'
             self.template_model_dir = osp.join(svjgenprod.SVJ_INPUT_DIR, 'mg_model_templates/DMsimp_SVJ_t_template')
