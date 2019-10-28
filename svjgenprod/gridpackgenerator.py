@@ -36,7 +36,6 @@ class GridpackGenerator(object):
         self.mg_model_dir = svjgenprod.MG_MODEL_DIR
         self.mg_input_dir = svjgenprod.MG_INPUT_DIR
         self.mg_genprod_dir = svjgenprod.MG_GENPROD_DIR
-        self.tarball_out_directory =  svjgenprod.TARBALL_OUT
 
         self.set_class_variables_from_config(config)
         self.define_paths()
@@ -229,23 +228,55 @@ class GridpackGenerator(object):
             os.chdir(current_dir)
 
 
-    def move_gridpack_to_storage(self):
-        files = glob.glob(osp.join(self.mg_genprod_dir, self.model_name + '*'))
 
-        dst_dir = osp.join(self.tarball_out_directory, strftime('%y%m%d_%H%M'))
 
+    def _get_output_files_and_dirs(self):
+        """
+        Collects all files to be copied into a list, and makes a destination dir
+        """
+        return glob.glob(osp.join(self.mg_genprod_dir, self.model_name + '*'))  # Includes a log
+
+    def _make_output_directory(self, output_dir=None):
+        """
+        Catches directory creation error and prints where the tarball might still exist
+        Useful in case you run a long gridpack generation and there is only an error in
+        copying the file
+        Creates a uniquely named output directory of output_dir is None
+        """
+        if output_dir is None:
+            output_dir = osp.join(
+                svjgenprod.SVJ_OUTPUT_DIR,
+                strftime('%y%m%d_%H%M_') + self.model_name
+                )
         try:
-            svjgenprod.utils.create_directory(dst_dir, must_not_exist=True)
+            svjgenprod.utils.create_directory(output_dir, must_not_exist=True)
         except OSError:
             logger.error(
                 'Directory {0} already exists; '
                 'Not moving files to output directory, tarballs should be '
                 'still available in {1}'
-                .format(dst_dir, self.mg_genprod_dir)
+                .format(output_dir, self.mg_genprod_dir)
                 )
+            raise
+        return output_dir
 
-        for f in files:
-            dst = osp.join(dst_dir, osp.basename(f))
-            logger.info('Moving {0} ==> {1}'.format(f, dst))
-            shutil.move(f, dst)
+
+    def _transfer_to_output(self, move=False, output_dir=None, dry=False):
+        srcs = self._get_output_files_and_dirs()
+        output_dir = self._make_output_directory(output_dir)
+        for src in srcs:
+            dst = osp.join(output_dir, osp.basename(src))
+            if move:
+                logger.info('Moving {0} ==> {1}'.format(src, dst))
+                if not dry: shutil.move(src, dst)
+            else:
+                logger.info('Copying {0} ==> {1}'.format(src, dst))
+                if not dry: shutil.copyfile(src, dst)
+
+
+    def copy_to_output(self, output_dir=None, dry=False):
+        self._transfer_to_output(move=False, output_dir=output_dir, dry=dry)
+
+    def move_to_output(self, output_dir=None, dry=False):
+        self._transfer_to_output(move=True, output_dir=output_dir, dry=dry)
 
