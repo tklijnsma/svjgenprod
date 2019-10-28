@@ -43,6 +43,7 @@ environment.read_environment()
 
 import utils
 from .config import Config
+from semanager import SEManager
 from .gridpackgenerator import GridpackGenerator
 from .lhemaker import LHEMaker
 import calc_dark_params as cdp

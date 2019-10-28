@@ -141,3 +141,27 @@ class FullSimRunnerBase(object):
         logger.info('Moving {0} ==> {1}'.format(self.out_root_file, dst))
         if not dry:
             shutil.move(self.out_root_file, dst)
+
+    def stageout(self, stageout_directory=None):
+        """
+        Stages out a file to the lpc SE
+        """
+        if stageout_directory is None:
+            # Make something reasonable
+            if svjgenprod.BATCH_MODE:
+                condor_cluster = os.environ['$CONDOR_CLUSTER']
+            else:
+                condor_cluster = 'local'
+            stageout_directory = (
+                '/store/user/{user}/semivis/{condor_cluster}_{substage}_{model_name}'
+                .format(
+                    user = os.environ['USER'],
+                    condor_cluster = condor_cluster,
+                    substage = self.substage,
+                    model_name = self.model_name
+                    )
+                )
+        dst = osp.join(stageout_directory, 'N{0}_seed{1}.root'.format(self.n_events, self.seed))
+        semanager = svjgenprod.SEManager()
+        semanager.copy_to_se(self.out_root_file, dst, create_parent_directory=True)
+

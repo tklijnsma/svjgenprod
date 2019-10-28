@@ -53,7 +53,7 @@ def run_command(cmd, env=None, dry=False, shell=False):
     process.wait()
     returncode = process.returncode
 
-    if (returncode == 0):
+    if returncode == 0:
         logger.info('Command exited with status 0 - all good')
     else:
         logger.error('Exit status {0} for command: {1}'.format(returncode, cmd))
