@@ -24,19 +24,9 @@ from .lhaIDs import lhaIDs
 class GridpackGenerator(object):
     """docstring for GridpackGenerator"""
 
-
-    @classmethod
-    def from_yaml(cls, yaml_file):
-        config = svjgenprod.Config.from_yaml(yaml_file)
-        return cls(config)
-
-    @classmethod
-    def from_file(cls, file):
-        config = svjgenprod.Config.from_file(file)
-        return cls(config)
-
     def __init__(self, config):
         super(GridpackGenerator, self).__init__()
+        self.config = svjgenprod.Config.flexible_init(config)
         svjgenprod.utils.check_scram_arch()
 
         self.force_renew_model_dir = True

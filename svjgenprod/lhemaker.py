@@ -113,7 +113,7 @@ class LHEMaker(object):
     def _get_dst(self, output_dir, dry):
         """
         Makes an output directory if not yet existing and comes up with
-        a better file name
+        a better file name for the just-created .lhe file
         """
         if output_dir is None: output_dir = svjgenprod.SVJ_OUTPUT_DIR
         svjgenprod.utils.create_directory(output_dir, dry=dry)
