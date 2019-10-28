@@ -50,12 +50,18 @@ class GridpackGenerator(object):
         self.process_type = config['process_type']
         self.channel = self.process_type.replace('-channel', '')
         self.m_med = config['m_med']
-        self.n_events = config['n_events']
-        self.n_jobs = config['n_jobs']
         self.m_d = config['m_d']
         self.r_inv = config['r_inv']
         self.alpha_d = config['alpha_d']
         self.year = config['year']
+
+        # Does the number of events matter at all during gridpack generation?
+        # Maybe for the cross section?
+        if not 'n_events' in config:
+            self.n_events = 1000
+            logger.warning('n_events not specified in config; setting to {0}'.format(self.n_events))
+        else:
+            self.n_events = config['n_events']
 
 
     def define_paths(self):
@@ -82,8 +88,6 @@ class GridpackGenerator(object):
             self.template_input_dir = osp.join(svjgenprod.SVJ_INPUT_DIR, 'mg_input_templates/DMsimp_SVJ_t_input_template')
         else:
             raise ValueError('Unknown channel \'{0}\''.format(self.channel))
-
-        self.total_events = self.n_events * self.n_jobs
         self.new_model_dir = os.path.join(self.mg_model_dir, self.model_name)
 
 
@@ -91,7 +95,6 @@ class GridpackGenerator(object):
         self.setup_model_dir()
         self.setup_input_dir()
         self.compile_gridpack()
-        self.move_gridpack_to_storage()
 
 
     def setup_model_dir(self):
@@ -151,7 +154,7 @@ class GridpackGenerator(object):
                 card_file = template,
                 # model_name = 'DMsimp_SVJ_s_spin1' if template.endswith('extramodels.dat') else self.model_name,
                 model_name = self.model_name,
-                total_events = self.total_events,
+                total_events = self.n_events,
                 lhaid = lhaIDs[self.year]
                 )
             logger.info('Writing formatted template to {0}'.format(out_file))
