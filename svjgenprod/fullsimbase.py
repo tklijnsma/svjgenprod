@@ -150,8 +150,10 @@ class FullSimRunnerBase(object):
             # Make something reasonable
             if svjgenprod.BATCH_MODE:
                 condor_cluster = os.environ['CONDOR_CLUSTER_NUMBER']
+                condor_process_id = '_' + os.environ['CONDOR_PROCESS_ID']
             else:
                 condor_cluster = 'local'
+                condor_process_id = ''
             stageout_directory = (
                 '/store/user/{user}/semivis/{condor_cluster}_{substage}_{model_name}'
                 .format(
@@ -161,7 +163,7 @@ class FullSimRunnerBase(object):
                     model_name = self.model_name
                     )
                 )
-        dst = osp.join(stageout_directory, 'N{0}_seed{1}.root'.format(self.n_events, self.seed))
+        dst = osp.join(stageout_directory, 'N{0}{1}_seed{2}.root'.format(self.n_events, condor_process_id, self.seed))
         semanager = svjgenprod.SEManager()
         semanager.copy_to_se(self.out_root_file, dst, create_parent_directory=True)
 

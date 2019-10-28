@@ -104,6 +104,6 @@ class SEManager(object):
             parent_directory = osp.dirname(dst)
             self.create_directory(parent_directory)
         logger.warning('Copying {0} to {1}'.format(src, dst))
-        cmd = [ 'xrdcp', src, dst ]
+        cmd = [ 'xrdcp', '-s', src, dst ]
         svjgenprod.utils.run_command(cmd)
 
