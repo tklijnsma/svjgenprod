@@ -15,7 +15,11 @@ class JDLBase(object):
 
     def __init__(self):
         super(JDLBase, self).__init__()
-        self.environment = { 'SCRAM_ARCH': self.default_scram_arch }
+        self.environment = {
+            'SCRAM_ARCH': self.default_scram_arch,
+            'CONDOR_CLUSTER_NUMBER' : '$(Cluster)',
+            'CONDOR_PROCESS_ID' : '$(Process)'
+            }
         self.options = collections.OrderedDict()
         self.options['universe'] = 'vanilla'
         self.options['environment'] = self.environment
