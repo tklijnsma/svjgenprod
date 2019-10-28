@@ -97,6 +97,13 @@ class FullSimRunnerBase(object):
         cmds.append(self.get_cmsdriver_cmd())
         svjgenprod.utils.run_multiple_commands(cmds)
 
+    def edit_cmsdriver_output(self):
+        """
+        Overwrite this method in case edits need to made to the .cfg output
+        of the cmsDriver command before doing cmsRun
+        """
+        pass
+
     def cmsrun(self):
         cmds = self.source_cmssw_cmds()
         cmds.append('cmsRun {0}'.format(self.cfg_file_basename))
@@ -105,7 +112,19 @@ class FullSimRunnerBase(object):
     def full_chain(self):
         self.setup_cmssw()
         self.cmsdriver()
+        self.edit_cmsdriver_output()
         self.cmsrun()
+
+    def _get_cmsdriver_output(self):
+        logger.info('Reading {0}'.format(self.cfg_file))
+        with open(self.cfg_file, 'r') as f:
+            contents = f.read()
+        return contents
+
+    def _overwrite_cmsdriver_output(self, contents):
+        logger.warning('Overwriting {0}'.format(self.cfg_file))
+        with open(self.cfg_file, 'w') as f:
+            f.write(contents)
 
     def copy_to_output(self, output_dir=None, dry=False):
         if output_dir is None: output_dir = svjgenprod.SVJ_OUTPUT_DIR
