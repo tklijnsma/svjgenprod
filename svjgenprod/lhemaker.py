@@ -109,6 +109,22 @@ class LHEMaker(object):
             cmd = [ 'bash', 'runcmsgrid.sh', str(self.n_events), str(self.seed) ]
             svjgenprod.utils.run_command(cmd)
         self.out_lhe_file = osp.join(extracted_tarball, 'cmsgrid_final.lhe')
+        self.replace_pids(self.out_lhe_file)
+
+    def replace_pids(self, lhe_file):
+        logger.info('Going to replace pids. Opening {0} and reading contents'.format(lhe_file))
+        with open(lhe_file, 'r') as f:
+            contents = f.read()
+        def replace(contents, src, dst):
+            logger.info('Replacing "{0}" ==> "{1}"'.format(src, dst))
+            return contents.replace(src, dst)
+        if self.config['process_type'].startswith('s'):
+            contents = replace(contents, '5000521', '4900101')
+        else:
+            raise NotImplementedError
+        logger.warning('Overwriting {0} with replacements'.format(lhe_file))
+        with open(lhe_file, 'w') as f:
+            f.write(contents)
 
     def _get_dst(self, output_dir, dry):
         """
@@ -119,7 +135,7 @@ class LHEMaker(object):
         svjgenprod.utils.create_directory(output_dir, dry=dry)
         dst = osp.join(
             output_dir,
-            'lhe_{0}_N{1}_seed{2}'.format(self.model_name, self.n_events, self.seed)
+            'lhe_{0}_N{1}_seed{2}.lhe'.format(self.model_name, self.n_events, self.seed)
             )
         return dst
 
