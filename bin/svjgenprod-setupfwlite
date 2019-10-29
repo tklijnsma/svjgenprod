@@ -67,6 +67,22 @@ def main():
     with open(rootlogon, 'w') as f:
         f.write('{gSystem->Load("libFWCoreFWLite"); FWLiteEnabler::enable();}')
 
+    counteventsscript = osp.join(workdir, cmssw, 'src', 'countevents.py')
+    logger.info('Creating {0}'.format(counteventsscript))
+    contents = [
+        '#!/usr/bin/env python',
+        '# -*- coding: utf-8 -*-',
+        'from __future__ import print_function',
+        'import sys',
+        'rootfile = sys.argv[1]',
+        'import ROOT',
+        'tfile = ROOT.TFile.Open(rootfile)',
+        'nevents = tfile.Events.GetEntries()',
+        'print(nevents)',
+        ]
+    with open(counteventsscript, 'w') as f:
+        f.write('\n'.join(contents))
+
 
 
 #____________________________________________________________________
