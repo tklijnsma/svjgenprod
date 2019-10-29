@@ -150,7 +150,7 @@ class FullSimRunnerBase(object):
             # Make something reasonable
             if svjgenprod.BATCH_MODE:
                 condor_cluster = os.environ['CONDOR_CLUSTER_NUMBER']
-                condor_process_id = '_' + os.environ['CONDOR_PROCESS_ID']
+                condor_process_id = '_{:04d}'.format(int(os.environ['CONDOR_PROCESS_ID']))
             else:
                 condor_cluster = 'local'
                 condor_process_id = ''
