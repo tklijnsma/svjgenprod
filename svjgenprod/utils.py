@@ -296,3 +296,17 @@ def tarball_head(outfile=None):
     with switchdir(osp.join(svjgenprod.SVJ_TOP_DIR, '..')):
         run_command(['git', 'archive', '-o', outfile, 'HEAD'])
 
+
+def get_mg_crosssection_from_logfile(log_file):
+    """
+    Gets the madgraph cross section from the log file that was created when creating a gridpack
+    """
+    with open(log_file) as f:
+        match = re.search(r'(?<=Cross-section :   )(\d*.\d+)', f.read())
+        if not match:
+            raise ValueError(
+                'Could not determine cross section from log_file {0}'.format(log_file)
+                )
+    xs = match.group(1)
+    logger.info('Found cross section {0} from log_file'.format(xs))
+    return float(xs)
