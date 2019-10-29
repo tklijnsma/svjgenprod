@@ -2,18 +2,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
-import os, shutil, sys, glob, subprocess
+import os, shutil, sys, glob, subprocess, logging
 import os.path as osp
 from string import Template
 from distutils.dir_util import copy_tree
-
-
-# from load_yaml_config import load_yaml_config
-# from lhaIDs import lhaIDs as lhaID_dict
-
 from time import strftime
 
-import logging
 logger = logging.getLogger('root')
 
 import svjgenprod
@@ -28,23 +22,18 @@ class GridpackGenerator(object):
         super(GridpackGenerator, self).__init__()
         self.config = svjgenprod.Config.flexible_init(config)
         svjgenprod.utils.check_scram_arch()
-
         self.force_renew_model_dir = True
         self.force_renew_input_dir = True
         self.force_renew_gridpack_dir = True
-
         self.mg_model_dir = svjgenprod.MG_MODEL_DIR
         self.mg_input_dir = svjgenprod.MG_INPUT_DIR
         self.mg_genprod_dir = svjgenprod.MG_GENPROD_DIR
-
         self.set_class_variables_from_config(config)
         self.define_paths()
-
 
     def set_class_variables_from_config(self, config):
         logger.info('Setting class variables from config')
         config.basic_checks()
-
         # Set variables from config file
         self.model_name = config.get_model_name()
         self.process_type = config['process_type']
@@ -54,7 +43,6 @@ class GridpackGenerator(object):
         self.r_inv = config['r_inv']
         self.alpha_d = config['alpha_d']
         self.year = config['year']
-
         # Does the number of events matter at all during gridpack generation?
         # Maybe for the cross section?
         if not 'n_events' in config:
@@ -62,7 +50,6 @@ class GridpackGenerator(object):
             logger.warning('n_events not specified in config; setting to {0}'.format(self.n_events))
         else:
             self.n_events = config['n_events']
-
 
     def define_paths(self):
         """
@@ -72,7 +59,6 @@ class GridpackGenerator(object):
         Split function from init so that it's possible to tweak config parameters
         and simply re-call define_paths.
         """
-
         # Set process-specific variables
         if self.channel == 's':
             self.med_type = 'Zp'
@@ -90,24 +76,20 @@ class GridpackGenerator(object):
             raise ValueError('Unknown channel \'{0}\''.format(self.channel))
         self.new_model_dir = os.path.join(self.mg_model_dir, self.model_name)
 
-
     def run_gridpack_generation(self):
         self.setup_model_dir()
         self.setup_input_dir()
         self.compile_gridpack()
 
-
     def setup_model_dir(self):
         self.create_model_dir()
         self.write_param_card()
-
 
     def create_model_dir(self):
         created = svjgenprod.utils.create_directory(self.new_model_dir, force=self.force_renew_model_dir)
         if not created:
             logger.info('Not re-copying in template files')
             return
-
         # Copy model files to new directory and change relevant parameters according to config
         logger.info('Copying template model: {0} to {1}'.format(self.template_model_dir, self.new_model_dir))
         copy_tree(self.template_model_dir, self.new_model_dir)
@@ -121,7 +103,6 @@ class GridpackGenerator(object):
             f.write(new_params)
         logger.info('New parameters written in model files!')
 
-
     def write_param_card(self):
         logger.info('Writing param_card.dat')
         # Use the write_param_card.py module that is in the newly created model_dir
@@ -131,13 +112,10 @@ class GridpackGenerator(object):
         ParamCardWriter(param_card_file, generic=True)
         logger.info('Done writing param_card.dat')
 
-
     def setup_input_dir(self):
         self.new_input_dir = osp.join(self.mg_input_dir, self.model_name + '_input')
-
         logger.info('Preparing input_cards_dir: {0}'.format(self.new_input_dir))
         logger.info('Getting templates from mg_input_template_dir: {0}'.format(self.template_input_dir))
-        
         svjgenprod.utils.create_directory(self.new_input_dir, force=self.force_renew_input_dir)
 
         def fill_template(card_file, model_name, total_events, lhaid):
@@ -173,13 +151,9 @@ class GridpackGenerator(object):
 
 
     def compile_gridpack(self):
-        # svjgenprod.utils.check_proxy()  # Probably no proxy need for this
-        current_dir = os.getcwd()
-
-        try:
-            logger.info('Changing wd to {0}'.format(self.mg_genprod_dir))
-            os.chdir(self.mg_genprod_dir)
+        with svjgenprod.utils.switchdir(self.mg_genprod_dir):
             assert osp.isfile('gridpack_generation.sh')
+            self.logfile = osp.abspath(self.model_name + '.log') # Expected location of log file
 
             svjgenprod.utils.create_directory(
                 self.model_name,
@@ -210,28 +184,22 @@ class GridpackGenerator(object):
                 self.model_name,
                 input_cards_dir_relative,
                 ]
-            svjgenprod.utils.run_command(cmd)
+            try:
+                svjgenprod.utils.run_command(cmd, env=env)
+            except subprocess.CalledProcessError:
+                # Try to display the log file if there is one before throwing
+                if osp.isfile(self.logfile):
+                    with open(self.logfile, 'r') as f:
+                        logger.info(
+                            'Contents of {0}:\n{1}'
+                            .format(self.logfile, f.read())
+                            )
+                else:
+                    logger.warning('File {0} does not exist'.format(self.logfile))
+                raise
 
-        except subprocess.CalledProcessError:
-            logger.error('Encountered problem while running command')
-            # Script outputs to a log file, try to print contents of that
-            logfile = self.model_name + '.log'
-            if osp.isfile(logfile):
-                with open(logfile, 'r') as f:
-                    logger.info(
-                        'Contents of {0}:\n{1}'
-                        .format(logfile, f.read())
-                        )
-            else:
-                logger.warning('File {0} does not exist'.format(logfile))
-            raise
-
-        finally:
-            logger.info('Changing wd back to {0}'.format(current_dir))
-            os.chdir(current_dir)
-
-
-
+    def get_mg_crosssection(self):
+        return svjgenprod.utils.get_mg_crosssection_from_logfile(self.logfile)
 
     def _get_output_files_and_dirs(self):
         """
@@ -275,6 +243,11 @@ class GridpackGenerator(object):
             else:
                 logger.info('Copying {0} ==> {1}'.format(src, dst))
                 if not dry: shutil.copyfile(src, dst)
+            # Slightly hacky: assuming there is one log file, point to the moved/copied
+            # log file after this function is called
+            if src.endswith('.log'):
+                logger.info('Log file now in {0}'.format(dst))
+                self.logfile = osp.abspath(dst)
 
 
     def copy_to_output(self, output_dir=None, dry=False):
