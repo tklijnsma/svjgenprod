@@ -1,0 +1,75 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import os.path as osp
+import argparse, logging, shutil, os
+import svjgenprod
+from time import strftime
+logger = logging.getLogger('root')
+
+
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    'cmssw_version_or_runner',
+    type=str, default='CMSSW_10_2_15',
+    help='Pass either a CMSSW version or the name of a runner defined in fullsimrunners.py'
+    )
+parser.add_argument(
+    '-a', '--arch',
+    type=str, default='slc7_amd64_gcc700',
+    help='Corresponding scram arch for the chosen cmssw. No need to pass this in case a runner is passed'
+    )
+parser.add_argument(
+    '--location',
+    type=str, default=os.getcwd(),
+    help='Path to where the CMSSW should be setup (default: current directory)'
+    )
+# parser.add_argument( '--boolean', action='store_true', help='boolean')
+# parser.add_argument( '--list', metavar='N', type=str, nargs='+', help='list of strings' )
+args = parser.parse_args()
+
+
+def main():
+    if args.cmssw_version_or_runner.startswith('CMSSW_'):
+        cmssw = args.cmssw_version_or_runner
+        arch = args.arch
+    elif hasattr(svjgenprod.fullsimrunners, args.cmssw_version_or_runner):
+        runner = getattr(svjgenprod.fullsimrunners, args.cmssw_version_or_runner)
+        cmssw = runner.cmssw_version
+        arch = runner.arch
+    else:
+        raise ValueError(
+            'Passed input \'{0}\' is not recognized'
+            .format(args.cmssw_version_or_runner)
+            )
+
+    workdir = args.location
+    if osp.isdir(osp.join(workdir, cmssw)):
+        raise ValueError('{0} already exists; not setting up'.format(osp.join(workdir, cmssw)))
+
+    logger.info('Setting up {0} {1} in {2}'.format(cmssw, arch, workdir))
+    cmds = [
+        'cd {0}'.format(workdir),
+        'shopt -s expand_aliases',
+        'source /cvmfs/cms.cern.ch/cmsset_default.sh',
+        'export SCRAM_ARCH={0}'.format(arch),
+        'cmsrel {0}'.format(cmssw),
+        'cd {0}/src'.format(cmssw),
+        'cmsenv',
+        'git cms-addpkg PhysicsTools/FWLite',
+        'scram b',
+        ]
+    svjgenprod.utils.run_multiple_commands(cmds)
+
+    rootlogon = osp.join(workdir, cmssw, 'src', 'rootlogon.C')
+    logger.info('Creating {0}'.format(rootlogon))
+    with open(rootlogon, 'w') as f:
+        f.write('{gSystem->Load("libFWCoreFWLite"); FWLiteEnabler::enable();}')
+
+
+
+#____________________________________________________________________
+if __name__ == "__main__":
+    main()
+
