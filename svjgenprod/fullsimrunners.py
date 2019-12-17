@@ -36,6 +36,7 @@ class FullSimRunnerGenSim(svjgenprod.FullSimRunnerBase):
         self.add_gensimfragment()
         self.cmsdriver()
         self.edit_cmsdriver_output()
+        self.edit_cmsdriver_rnd_service()
         self.cmsrun()
 
     def add_gensimfragment(self):
@@ -134,6 +135,75 @@ class FullSimRunnerGenSim2018(FullSimRunnerGenSim):
 
 
 #____________________________________________________________________
+class FullSimRunnerGen(FullSimRunnerGenSim):
+    """
+    Simplification of the GEN-SIM step, without the SIM part.
+    """
+    stage = 'gen'
+    substage = 'GEN'
+
+    @classmethod
+    def subclass_per_year(cls):
+        return {
+            2016: FullSimRunnerGen2016,
+            2017: FullSimRunnerGen2017,
+            2018: FullSimRunnerGen2018,
+            }
+
+class FullSimRunnerGen2016(FullSimRunnerGen):
+    # earlier versions don't have CMSSW plug-ins for dark quark/Z2 filters
+    cmssw_version = 'CMSSW_7_1_38_patch1'
+    arch = 'slc6_amd64_gcc481'
+    def get_cmsdriver_cmd(self):
+        raise NotImplementedError
+
+class FullSimRunnerGen2017(FullSimRunnerGen):
+    # earlier versions (at least <=9_3_12) don't have CMSSW plug-ins for dark quark/Z2 filters
+    cmssw_version = 'CMSSW_9_3_15'
+    arch = 'slc7_amd64_gcc630'
+    def get_cmsdriver_cmd(self):
+        return [
+            'cmsDriver.py Configuration/GenProduction/python/{0}'.format(self.gensimfragment_basename),
+            '--filein file:{0}'.format(self.in_file),
+            '--fileout file:{0}'.format(self.out_root_file_basename),
+            '--mc',
+            '--eventcontent RAWSIM',
+            '--datatier GEN',
+            '--conditions 93X_mc2017_realistic_v3',
+            '--beamspot Realistic25ns13TeVEarly2017Collision',
+            '--step GEN',
+            # '--geometry DB:Extended',
+            '--era Run2_2017',
+            '--customise Configuration/DataProcessing/Utils.addMonitoring',
+            '--python_filename {0}'.format(self.cfg_file_basename),
+            '--no_exec',
+            '-n {0}'.format(self.n_events),
+            ]
+
+class FullSimRunnerGen2018(FullSimRunnerGen):
+    # earlier versions (at least <=10_2_3) don't have CMSSW plug-ins for dark quark/Z2 filters
+    cmssw_version = 'CMSSW_10_2_15'
+    arch = 'slc7_amd64_gcc700'
+    def get_cmsdriver_cmd(self):
+        return [
+            'cmsDriver.py Configuration/GenProduction/python/{0}'.format(self.gensimfragment_basename),
+            '--filein file:{0}'.format(self.in_file),
+            '--fileout file:{0}'.format(self.out_root_file_basename),
+            '--mc',
+            '--eventcontent RAWSIM',
+            '--datatier GEN',
+            '--conditions 102X_upgrade2018_realistic_v11',
+            '--beamspot Realistic25ns13TeVEarly2018Collision',
+            '--step GEN',
+            # '--geometry DB:Extended',
+            '--era Run2_2018',
+            '--customise Configuration/DataProcessing/Utils.addMonitoring',
+            '--python_filename {0}'.format(self.cfg_file_basename),
+            '--no_exec',
+            '-n {0}'.format(self.n_events),
+            ]
+
+#____________________________________________________________________
 aod_cmssw_version_2016 = 'CMSSW_8_0_21'
 aod_arch_2016 = 'slc6_amd64_gcc530'
 
@@ -159,6 +229,7 @@ class FullSimRunnerAOD(svjgenprod.FullSimRunnerBase):
         self.setup_cmssw()
         self.copy_pileup_filelist()
         self.cmsdriver()
+        self.edit_cmsdriver_rnd_service()
         self.cmsrun()
 
 
