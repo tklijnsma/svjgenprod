@@ -294,8 +294,16 @@ class GenSimFragment(object):
 
 
     def insert_filters(self):
-        """ Include Z2 symmmetry filter (enforce pair production of stable dark particles)
-        and dark quark filter (reject events where Z' decays directly to SM particles) """
+        """
+        Include Z2 symmmetry filter (enforce pair production of stable dark particles)
+        and dark quark filter (reject events where Z' decays directly to SM particles)
+
+        # pythia implementation of model has 4900111/211 -> -51 51 and 4900113/213 -> -53 53
+        # this is a stand-in for direct production of a single stable dark meson in the hadronization
+        # stable mesons should be produced in pairs (Z2 symmetry),
+        # so require total number produced by pythia to be a multiple of 4
+        # do *not* require this separately for 111/211 and 113/213 (pseudoscalar vs. vector)
+        """
         ret = (
             "darkhadronZ2filter = cms.EDFilter('MCParticleModuloFilter',\n"
             "    moduleLabel = cms.InputTag('generator'{smear}),\n"
@@ -319,4 +327,3 @@ class GenSimFragment(object):
             )
         logger.info("Extra filters added to gen fragment")
         return ret
-
