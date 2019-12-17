@@ -77,6 +77,20 @@ class FullSimRunnerGenSim(svjgenprod.FullSimRunnerBase):
             'seq = (process.generator + process.darkhadronZ2filter + process.darkquarkFilter)'
             )
 
+        logger.warning('EXTREMELY FRAGILE: Editing %s to keep gen jets', self.cfg_file)
+        contents += (
+            '\n\nfor particle in ["genParticlesForJetsNoMuNoNu","genParticlesForJetsNoNu","genCandidatesForMET","genParticlesForMETAllVisible"]:\n'
+            '    if hasattr(process, particle): getattr(process, particle).ignoreParticleIDs.extend([51,52,53])\n'
+            'if hasattr(process,"recoGenJets") and hasattr(process,"recoAllGenJetsNoNu"):\n'
+            '    process.recoGenJets += process.recoAllGenJetsNoNu\n'
+            'if hasattr(process,\'genJetParticles\') and hasattr(process,\'genParticlesForJetsNoNu\'):\n'
+            '    process.genJetParticles += process.genParticlesForJetsNoNu\n'
+            '    process.RAWSIMEventContent.outputCommands.extend([\n'
+            '        \'keep *_genParticlesForJets_*_*\',\n'
+            '        \'keep *_genParticlesForJetsNoNu_*_*\',\n'
+            '        ])\n'
+            )
+
         self._overwrite_cmsdriver_output(contents)
 
 
