@@ -61,8 +61,9 @@ def run_command(cmd, env=None, dry=False, shell=False):
 
 
 def run_multiple_commands(cmds, env=None, dry=False):
+    logger.info('Sending:\n{0}'.format(pprint.pformat(cmds)))
     if dry:
-        logger.info('Sending:\n{0}'.format(pprint.pformat(cmds)))
+        logger.info('Dry mode - not running command')
         return
 
     process = subprocess.Popen(
@@ -85,7 +86,7 @@ def run_multiple_commands(cmds, env=None, dry=False):
             cmd = ' '.join(cmd)
         if not(cmd.endswith('\n')):
             cmd += '\n'
-        logger.warning('Sending cmd \'{0}\''.format(cmd.replace('\n', '\\n')))
+        # logger.warning('Sending cmd \'{0}\''.format(cmd.replace('\n', '\\n')))
         process.stdin.write(cmd)
         process.stdin.flush()
     process.stdin.close()
