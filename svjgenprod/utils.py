@@ -311,3 +311,16 @@ def get_mg_crosssection_from_logfile(log_file):
     xs = match.group(1)
     logger.info('Found cross section {0} from log_file'.format(xs))
     return float(xs)
+
+def copy_to_output(file, change_name=None, dry=False):
+    """
+    Copies a file to the svjgenprod.SVJ_OUTPUT_DIR.
+    Does not change the filename by default, but `change_name` can be passed
+    to change the filename. The output directory will still be svjgenprod.SVJ_OUTPUT_DIR.
+    """
+    svjgenprod.utils.create_directory(svjgenprod.SVJ_OUTPUT_DIR)
+    dst = osp.join(svjgenprod.SVJ_OUTPUT_DIR, osp.basename(file if change_name is None else change_name))
+    logger.info('Copying {0} ==> {1}'.format(file, dst))
+    if not dry:
+        shutil.copyfile(file, dst)
+
