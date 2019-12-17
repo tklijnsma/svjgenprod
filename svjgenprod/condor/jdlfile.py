@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import os.path as osp
 import logging, os, collections
+from time import strftime
 import svjgenprod
 logger = logging.getLogger('root')
 
@@ -20,6 +21,9 @@ class JDLBase(object):
             'CONDOR_CLUSTER_NUMBER' : '$(Cluster)',
             'CONDOR_PROCESS_ID' : '$(Process)',
             'USER' : os.environ['USER'],
+            'CLUSTER_SUBMISSION_TIMESTAMP' : strftime('%Y%m%d_%H%M%S'),
+            'CLUSTER_SUBMISSION_TIMESTAMP_SHORT' : strftime('%Y-%m-%d'),
+            'CLUSTER_SUBMISSION_TIMESTAMP_VERBOSE' : strftime('%b %d %H:%M:%S (%Y)'),
             }
         self.options = collections.OrderedDict()
         self.options['universe'] = 'vanilla'
@@ -88,6 +92,8 @@ class JDLStandard(JDLBase):
         self.options['should_transfer_files'] = 'YES'  # May not be needed if staging out to SE!
         self.options['when_to_transfer_output'] = 'ON_EXIT'
         self.options['transfer_output_files'] = 'output'  # Should match with what is defined in svjgenprod.SVJ_OUTPUT_DIR
+        self.options['on_exit_hold'] = '(ExitBySignal == True) || (ExitCode != 0)' # Hold job on failure
+
         self.parse_infiles()
 
         python_basename = osp.basename(self.python_file).replace('.py', '')
