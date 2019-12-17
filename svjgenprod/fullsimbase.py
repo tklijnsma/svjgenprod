@@ -182,10 +182,11 @@ class FullSimRunnerBase(object):
                 condor_cluster = 'local'
                 condor_process_id = ''
             stageout_directory = (
-                '/store/user/{user}/semivis/{condor_cluster}_{substage}_{model_name}'
+                '/store/user/{user}/semivis/{condor_cluster}_{datestr}_{substage}_{model_name}'
                 .format(
                     user = os.environ['USER'],
                     condor_cluster = condor_cluster,
+                    datestr = strftime('%y-%m-%d'),
                     substage = self.substage,
                     model_name = self.model_name
                     )
