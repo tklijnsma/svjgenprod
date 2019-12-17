@@ -61,7 +61,7 @@ def run_command(cmd, env=None, dry=False, shell=False):
 
 
 def run_multiple_commands(cmds, env=None, dry=False):
-    logger.info('Sending:\n{0}'.format(pprint.pformat(cmds)))
+    logger.info('Sending cmds:\n{0}'.format(pprint.pformat(cmds)))
     if dry:
         logger.info('Dry mode - not running command')
         return
