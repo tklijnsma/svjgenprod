@@ -31,7 +31,12 @@ RUN_FULLSIM_DIR = '/tmp/svj/runfullsim'
 SVJ_OUTPUT_DIR = '/tmp/svj/output'
 
 # Assume running locally by default
+# This variable will be set to True if using the svjgenprod-batch script
 BATCH_MODE = False
+
+# Convenience global variable. Will be set by svjgenprod-batch if a tarball
+# preprocessing directive is given
+SVJ_TARBALL = None
 
 # Overwrite global vars based on environment variables
 import environment

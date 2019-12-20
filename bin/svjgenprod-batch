@@ -17,11 +17,11 @@ def main():
         help='Path to the python executable containing the job instructions'
         )
     parser.add_argument(
-        'njobs', type=int,
+        '--njobs', type=int, default=1,
         help='Number of jobs to submit'
         )
     parser.add_argument(
-        'nevents', type=int,
+        '--nevents', type=int, default=10,
         help='Number of required events *per job*'
         )
     parser.add_argument(
@@ -30,7 +30,7 @@ def main():
         )
     parser.add_argument(
         '-i', '--infiles', metavar='file', type=str, nargs='+',
-        default = None,
+        default = [],
         help = 'List of filenames to be used in the job'
         )
     parser.add_argument(
@@ -52,6 +52,23 @@ def main():
             )
         )
     args = parser.parse_args()
+
+    # Overwrite command line options if there are directives set directly in the python file
+    preprocessing = svjgenprod.utils.read_preprocessing_directives(args.pythonfile)
+    if 'tarball' in preprocessing:
+        svjgenprod.logger.info(
+            'Passing %s based on preprocessing directive in %s',
+            preprocessing['tarball'], args.pythonfile
+            )
+        svjgenprod.SVJ_TARBALL = preprocessing['tarball']
+        args.infiles.insert(0, preprocessing['tarball'])
+    if 'n_jobs' in preprocessing:
+        svjgenprod.logger.info(
+            'Setting n_jobs %s based on preprocessing directive in %s',
+            preprocessing['n_jobs'], args.pythonfile
+            )
+        args.njobs = int(preprocessing['n_jobs'])
+
 
     if args.local:
         local(args)
@@ -128,12 +145,12 @@ def batch(args):
     svjgenprod.condor.shfile.SHClean().to_file(clean_sh_file, dry=args.dry)
 
     # Execute the submit command
-    cmd = ['condor_submit', osp.basename(jdl_file)]
+    # cmd = ['condor_submit', osp.basename(jdl_file)]
+    logger.warning('FIXME: Hard-coded for cjm-submit now')
+    cmd = ['/uscms/home/klijnsma/.local/bin/cjm-submit', osp.basename(jdl_file)]
 
     with svjgenprod.utils.switchdir(rundir, dry=args.dry):
         svjgenprod.utils.run_command(cmd, dry=args.dry, shell=True)
-
-
 
 #____________________________________________________________________
 if __name__ == "__main__":

@@ -324,3 +324,23 @@ def copy_to_output(file, change_name=None, dry=False):
     if not dry:
         shutil.copyfile(file, dst)
 
+def read_preprocessing_directives(filename):
+    """
+    Reads '#$' directives form a file
+    """
+    r = {}
+    with open(filename, 'r') as f:
+        for line in f.readlines():
+            line = line.strip()
+            if line.startswith('#$'):
+                if not '=' in line:
+                    logger.warning(
+                        'Preprocessing directive does not contain \'=\'; skipping: \'%s\'',
+                        line
+                        )
+                    continue
+                line = line.lstrip('#$')
+                key, value = [c.strip() for c in line.split('=', 1)]
+                r[key.lower()] = value
+                continue
+    return r
