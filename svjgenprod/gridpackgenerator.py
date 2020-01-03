@@ -25,6 +25,7 @@ class GridpackGenerator(object):
         self.force_renew_model_dir = True
         self.force_renew_input_dir = True
         self.force_renew_gridpack_dir = True
+        self.cleanup_gp_generation_dir = True
         self.mg_model_dir = svjgenprod.MG_MODEL_DIR
         self.mg_input_dir = svjgenprod.MG_INPUT_DIR
         self.mg_genprod_dir = svjgenprod.MG_GENPROD_DIR
@@ -186,6 +187,9 @@ class GridpackGenerator(object):
                 ]
             try:
                 svjgenprod.utils.run_command(cmd, env=env)
+                if self.cleanup_gp_generation_dir:
+                    logger.warning('Deleting %s', self.modelname)
+                    shutil.rmtree(self.model_name)
             except subprocess.CalledProcessError:
                 # Try to display the log file if there is one before throwing
                 if osp.isfile(self.logfile):
