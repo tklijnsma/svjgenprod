@@ -295,6 +295,14 @@ def tarball_head(outfile=None):
     outfile = osp.abspath(outfile)
 
     with switchdir(osp.join(svjgenprod.SVJ_TOP_DIR, '..')):
+        try:
+            run_command(['git', 'diff-index', '--quiet', 'HEAD', '--'])
+        except subprocess.CalledProcessError:
+            logger.error(
+                'Uncommitted changes detected; it is unlikely you want a tarball '
+                'with some changes not committed.'
+                )
+            raise
         run_command(['git', 'archive', '-o', outfile, 'HEAD'])
 
 
