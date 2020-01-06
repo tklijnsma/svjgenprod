@@ -1,6 +1,10 @@
 # Taken from https://github.com/kpedro88/SVJProduction/blob/master/test/dict_xsec_Zprime.txt
 # Z' mass (GeV): xs (pb)
-250     444.6  # From MG tarball creation; need to double-check!
+50      8992.0   # From MG tarball creation; need to double-check!
+150     1296.0   # From MG tarball creation; need to double-check!
+250     444.6    # From MG tarball creation; need to double-check!
+450     114.7    # From MG tarball creation; need to double-check!
+650     44.86    # From MG tarball creation; need to double-check!
 500     71.37
 600     33.22
 700     18.17

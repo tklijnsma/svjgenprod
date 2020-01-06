@@ -309,7 +309,7 @@ def get_mg_crosssection_from_logfile(log_file):
                 'Could not determine cross section from log_file {0}'.format(log_file)
                 )
     xs = match.group(1)
-    logger.info('Found cross section {0} from log_file'.format(xs))
+    logger.info('Found cross section %s from log_file %s', xs, log_file)
     return float(xs)
 
 def copy_to_output(file, change_name=None, dry=False):
