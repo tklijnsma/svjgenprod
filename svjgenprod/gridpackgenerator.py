@@ -188,7 +188,7 @@ class GridpackGenerator(object):
             try:
                 svjgenprod.utils.run_command(cmd, env=env)
                 if self.cleanup_gp_generation_dir:
-                    logger.warning('Deleting %s', self.modelname)
+                    logger.warning('Deleting %s', self.model_name)
                     shutil.rmtree(self.model_name)
             except subprocess.CalledProcessError:
                 # Try to display the log file if there is one before throwing
